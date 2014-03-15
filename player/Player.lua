@@ -15,10 +15,13 @@ function Player:new(yFloor)
 	    state = "", -- "moveRight", "moveLeft", "jump", "fall", "stand"
 	    jumpSpeed = -800,
 	    runSpeed = 500,
-	    canJump = false, -- means player is at a resting state where they aren't falling
+	    canJump = false, -- true: player is at a resting state where they aren't falling
 		gravity = 1800,
 		hasJumped = false,
 		delay = 120,
+		bullets = { },
+		heat = 0, -- how much time should pass before player can shoot again
+		heatp = 0.1, -- length of such intervals in general (before player can shoot again) (heatPlus)
 		yFloor = yFloor,
 		-- Load player animation
 		animation = SpriteAnimation:new("player/robosprites.png", 32, 32, 4, 4)
@@ -60,17 +63,36 @@ function Player:hitFloor(maxY)
 end
 
 function Player:update(dt)
+	self.heat = math.max(0, self.heat - dt)
+	
+	--
     -- check controls
+	--
+	
+	-- move right
     if love.keyboard.isDown("right") then
         self:moveRight()
     end
+	-- move left
     if love.keyboard.isDown("left") then
         self:moveLeft()
     end
+	-- jump
     if love.keyboard.isDown("x") and not(self.hasJumped) then
         self.hasJumped = true
         self:jump()
     end
+	-- fire
+	if love.keyboard.isDown(" ") and self.heat <= 0 then
+		local direction = math.atan2(love.mouse.getY() - self.y, love.mouse.getX() - self.x)
+		table.insert(self.bullets, {
+			x = self.x,
+			y = self.y,
+			dir = direction,
+			speed = 400
+		})
+		self.heat = self.heatp
+	end
 	
     -- update the player's position
     self.x = self.x + (self.xSpeed * dt)
@@ -115,6 +137,17 @@ function Player:update(dt)
         self.animation:switch(3, 1, 300)
     end
     self.animation:update(dt)
+	
+	-- update the bullets
+	local i, o
+	for i, o in ipairs(self.bullets) do
+		o.x = o.x + math.cos(o.dir) * o.speed * dt
+		o.y = o.y + math.sin(o.dir) * o.speed * dt
+		if (o.x < -10) or (o.x > love.graphics.getWidth() + 10)
+		or (o.y < -10) or (o.y > love.graphics.getHeight() + 10) then
+			table.remove(self.bullets, i)
+		end
+	end
 end
 
 function Player:draw()
@@ -125,6 +158,13 @@ function Player:draw()
 	-- draw the player
     g.setColor(255, 255, 255)
     self.animation:draw(x, y)
+	
+	-- draw the bullets
+	love.graphics.setColor(255, 255, 255, 224)
+	local i, o
+	for i, o in ipairs(self.bullets) do
+		love.graphics.circle('fill', o.x, o.y, 10, 8)
+	end
  
     -- debug information
     g.setColor(255, 255, 255)

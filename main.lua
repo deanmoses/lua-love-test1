@@ -10,7 +10,7 @@ function love.load()
 	yFloor = 500 -- y position of the floor, where the player rests
 
 	bg = Background:new(yFloor) -- Set up background
-	player = Player:new(yFloor) -- Set up our player
+	player = Player:new(yFloor) -- Set up the player
 	pig = Pig:new() -- Set up the pig
 end
 
