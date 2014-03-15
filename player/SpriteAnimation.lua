@@ -10,21 +10,21 @@ SpriteAnimation = {}
 -- Constructor
 function SpriteAnimation:new(imageString, width, height, numRows, numFrames)
     local object = {
-    imageString = imageString,
-    spriteImage = spriteImage,
-    sprites = {},
-    height = height,
-    width = width,
-    currentFrame = 1,
-    currentRow = 1,
-    numFrames = numFrames,
-    numRows = numRows,
-    delta = 0,
-    delay = 200,
-    loop = true,
-    flipX = false,
-    flipY = false,
-    isRunning = true
+	    imageString = imageString,
+	    spriteImage = spriteImage,
+	    sprites = {},
+	    height = height,
+	    width = width,
+	    currentFrame = 1,
+	    currentRow = 1,
+	    numFrames = numFrames,
+	    numRows = numRows,
+	    delta = 0,
+	    delay = 200,
+	    loop = true,
+	    flipX = false,
+	    flipY = false,
+	    isRunning = true
     }
     setmetatable(object, { __index = SpriteAnimation})
     return object

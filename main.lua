@@ -1,3 +1,4 @@
+require "background/Background"
 require "player/Player"
 require "player/SpriteAnimation"
 --require "camera"
@@ -6,23 +7,24 @@ function love.load()
     g = love.graphics
 	
 	-- load background images
-	bg = g.newImage("night-stars-desert.jpg")
-	bgGround = g.newImage("grass2.jpg")
 	pig = g.newImage("pig.png")
 	
 	
 	width = g.getWidth()
 	height = g.getHeight()
 	g.setBackgroundColor(85, 85, 85)
-	groundColor = {25, 200, 25}
-	trunkColor = {139, 69, 19}
+	
+	yFloor = 500
+	
+	-- Set up background
+	bg = Background:new(yFloor)
 
 	-- Load player animation
 	animation = SpriteAnimation:new("player/robosprites.png", 32, 32, 4, 4)
 	animation:load(delay)
 		
     playerColor = {255,0,128}
-    groundColor = {25,200,25}
+ 
  
     -- instantiate our player and set initial values
     p = Player:new()
@@ -37,8 +39,6 @@ function love.load()
 	gravity = 1800
 	hasJumped = false
 	delay = 120
- 
-    yFloor = 500
 end
 
 function love.update(dt)
@@ -81,21 +81,11 @@ function love.update(dt)
 end
 
 function love.draw()
-	g.draw(bg, 0, 0)
+	bg:draw()
 	
     -- round down our x, y values
     local x = math.floor(p.x)
     local y = math.floor(p.y)
-  
-    -- draw the ground
-    g.setColor(groundColor)
-    g.rectangle("fill", 0, yFloor, 800, 100)
-	g.draw(bgGround, 0, yFloor)
-	
-    -- add a tree!
-    g.rectangle("fill", 725, 285, 125, 125)
-    g.setColor(trunkColor)
-    g.rectangle("fill", 770, 410, 40, 90)
 	
 	-- draw the player
     g.setColor(255, 255, 255)
