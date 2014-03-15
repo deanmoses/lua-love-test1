@@ -1,3 +1,4 @@
+require "pig/Pig"
 require "background/Background"
 require "player/Player"
 require "player/SpriteAnimation"
@@ -6,8 +7,7 @@ require "player/SpriteAnimation"
 function love.load()
     g = love.graphics
 	
-	-- load background images
-	pig = g.newImage("pig.png")
+	
 	
 	
 	width = g.getWidth()
@@ -18,6 +18,8 @@ function love.load()
 	
 	-- Set up background
 	bg = Background:new(yFloor)
+	
+	pig = Pig:new()
 
 	-- Load player animation
 	animation = SpriteAnimation:new("player/robosprites.png", 32, 32, 4, 4)
@@ -83,6 +85,8 @@ end
 function love.draw()
 	bg:draw()
 	
+	pig:draw()
+	
     -- round down our x, y values
     local x = math.floor(p.x)
     local y = math.floor(p.y)
@@ -90,10 +94,6 @@ function love.draw()
 	-- draw the player
     g.setColor(255, 255, 255)
     animation:draw(x, y)
-		
-	-- draw pig
-	g.setColor(255, 255, 255)
-	g.draw(pig, 200, 200, 0, .5, .5)
  
     -- debug information
     g.setColor(255, 255, 255)

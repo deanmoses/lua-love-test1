@@ -8,7 +8,7 @@ Background = {}
 function Background:new(yFloor)
     -- define our parameters here
     local object = {
-		yFloor = yFloor,
+		yFloor = yFloor, -- the y coord at which the sky ends and the ground begins
 		bgSky = g.newImage("background/sky.jpg"),
 		bgGround = g.newImage("background/ground.jpg"),
 		groundColor = {25, 200, 25},
