@@ -1,0 +1,14 @@
+test/temp
+.tmp
+
+# temporary editor save files
+*~
+
+# OSX thumnail caches
+.DS_Store
+
+# log files
+*.log
+
+# JetBrains editor dir
+.idea/
