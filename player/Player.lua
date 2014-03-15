@@ -12,10 +12,10 @@ function Player:new(yFloor)
 	    height = 32,
 	    xSpeed = 0,
 	    ySpeed = 0,
-	    state = "",
+	    state = "", -- "moveRight", "moveLeft", "jump", "fall", "stand"
 	    jumpSpeed = -800,
 	    runSpeed = 500,
-	    canJump = false,
+	    canJump = false, -- means player is at a resting state where they aren't falling
 		gravity = 1800,
 		hasJumped = false,
 		delay = 120,
@@ -80,13 +80,7 @@ function Player:update(dt)
     self.ySpeed = self.ySpeed + (self.gravity * dt)
  
     -- update the player's state
-    if not(self.canJump) then
-        if self.ySpeed < 0 then
-            self.state = "jump"
-        elseif self.ySpeed > 0 then
-            self.state = "fall"
-        end
-    else
+    if self.canJump then
         if self.xSpeed > 0 then
             self.state = "moveRight"
         elseif self.xSpeed < 0 then
@@ -94,10 +88,16 @@ function Player:update(dt)
         else
             self.state = "stand"
         end
+	else
+        if self.ySpeed < 0 then
+            self.state = "jump"
+        elseif self.ySpeed > 0 then
+            self.state = "fall"
+        end
     end
 	
     -- stop the player when they hit the borders
-    self.x = math.clamp(self.x, 0, width * 2 - self.width)
+    self.x = math.clamp(self.x, 0, width - self.width)
     if self.y < 0 then self.y = 0 end
     if self.y > self.yFloor - self.height then
         self:hitFloor(self.yFloor)

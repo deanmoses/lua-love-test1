@@ -5,10 +5,11 @@
 Background = {}
  
 -- Constructor
+-- @param yFloor the y coord at which the sky ends and the ground begins
 function Background:new(yFloor)
     -- define our parameters here
     local object = {
-		yFloor = yFloor, -- the y coord at which the sky ends and the ground begins
+		yFloor = yFloor,
 		bgSky = g.newImage("background/sky.jpg"),
 		bgGround = g.newImage("background/ground.jpg"),
 		treeLeafColor = {25, 200, 25},

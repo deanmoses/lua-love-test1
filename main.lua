@@ -32,7 +32,8 @@ function love.keyreleased(key)
 	player:keyreleased(key)
 end
 
--- add a useful function to the built-in math package
+-- Clamps a number to within a certain range
+-- This adds the function to the built-in math package
 function math.clamp(x, min, max)
     return x < min and min or (x > max and max or x)
 end
