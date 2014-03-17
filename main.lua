@@ -1,30 +1,34 @@
 require "background/Background"
-require "player/Player"
 require "libs/camera"
+require "player/Player"
+require "coin/Coins"
 
 function love.load()
 	g = love.graphics
 	width = g.getWidth() -- width of window
 	height = g.getHeight() -- height of window
 	
-	yFloor = 500 -- y position of the floor, where the player rests
-
-	bg = Background:new() -- Set up background
-	player = Player:new(yFloor) -- Set up the player
-	
-	-- Load up the map
+	-- load the map
     loader = require("libs.AdvTiledLoader.Loader")
     loader.path = "maps/"
     map = loader.load("map01.tmx")
     map:setDrawRange(0, 0, map.width * map.tileWidth, map.height * map.tileHeight)
+	
+	-- set up the game objects
+	bg = Background:new() -- Set up background
+	player = Player:new() -- Set up the player
+	coins = Coins:new(map, player) -- Set up the coins
 
     -- restrict the camera
-    camera:setBounds(0, 0, map.width * map.tileWidth - width, map.height * map.tileHeight - height)
+    camera:setBounds(0, 0, map.width * map.tileWidth - width, map.height * map.tileHeight - height)   
 end
 
 function love.update(dt)
-	-- update the player's position and check for collisions
+	-- update the player's position and check for collisions with map
 	player:update(dt, gravity, map)
+	
+    -- update coin animations and check for collisions with player
+	coins:update(dt)
 	
     -- center the camera on the player
     camera:setPosition(math.floor(player.x - width / 2), math.floor(player.y - height / 2))
@@ -40,8 +44,12 @@ function love.draw()
 	camera:set()
 	bg:draw() -- draw the background
 	map:draw() -- draw the map
+	coins:draw() -- draw the coins
 	player:draw() -- draw the player
 	camera:unset()
+	
+	-- draw the score
+	love.graphics.print("Score: "..coins:getScore(), 700, 5)
 		
 	-- debugging
     local tileX = math.floor(player.x / map.tileWidth)

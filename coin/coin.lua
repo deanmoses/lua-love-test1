@@ -1,7 +1,11 @@
-coin = {}
+--
+-- A coin on the map
+--
+
+Coin = {}
  
 -- Constructor
-function coin:new(coinX, coinY)
+function Coin:new(coinX, coinY)
     local object = {
     x = coinX,
     y = coinY,
@@ -12,11 +16,11 @@ function coin:new(coinX, coinY)
     delta = 0,
     maxDelta = 10
     }
-    setmetatable(object, { __index = coin } )
+    setmetatable(object, { __index = Coin } )
     return object
 end
 
-function coin:update(dt)
+function Coin:update(dt)
     self.delta = self.delta + self.delay * dt
    
     -- if maxDelta is reached, advance one frame
@@ -27,7 +31,7 @@ function coin:update(dt)
 end
 
 -- returns true if the tile given is empty
-function coin:isColliding(map)
+function Coin:isColliding(map)
     -- get tile coordinates
     local tileX, tileY = math.floor(self.x / map.tileWidth), math.floor(self.y / map.tileHeight)
    
@@ -39,29 +43,11 @@ function coin:isColliding(map)
 end
 
 -- returns true if the object intersects this coin
-function coin:touchesObject(object)
+function Coin:touchesObject(object)
     local cx1, cx2 = self.x - self.width / 2, self.x + self.width / 2 - 1
     local cy1, cy2 = self.y - self.height / 2, self.y + self.height / 2 - 1
     local px1, px2 = object.x - object.width / 2, object.x + object.width / 2 - 1
     local py1, py2 = object.y - object.height / 2, object.y + object.height / 2 - 1
    
     return ((cx2 >= px1) and (cx1 <= px2) and (cy2 >= py1) and (cy1 <= py2))
-end
-
--- Place random coins around the map
-function placeCoins(map, numCoins)	
-   math.randomseed(os.time())
-   numCoins = numCoins or 25
-   coins = {}
-   for i = 1, numCoins do
-       local coinCollides = true
-       while coinCollides do -- try to place a coin on a random spot around the map
-           local coinX = math.random(1, map.width - 1) * map.tileWidth + map.tileWidth / 2
-           local coinY = math.random(1, map.height - 1) * map.tileHeight + map.tileHeight / 2
-           coins[i] = coin:new(coinX, coinY)
-       
-           -- if tile is occupied, try again
-           coinCollides = coins[i]:isColliding(map)
-       end
-   end	
 end
