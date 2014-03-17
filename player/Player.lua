@@ -1,9 +1,10 @@
 require "player/SpriteAnimation"
+require "bullets/Bullets"
 
 Player = {}
  
 -- Constructor
-function Player:new(yFloor)
+function Player:new()
     -- define our parameters here
     local object = {
 	    x = 300,
@@ -12,17 +13,18 @@ function Player:new(yFloor)
 	    height = 32,
 	    xSpeed = 0,
 	    ySpeed = 0,
+		-- xSpeedMax, ySpeedMax: the player's max velocity. Because the player can fall long distances and be accelerated by gravity the whole time, we must make sure his speed doesn't exceed these maximums. If they do, then the player would be moving too fast for our collision detection to keep up. If the player moves more than one tile of distance in between cycles, that's bad. So the maximum values prevent this. onFloor now takes the place of the canJump boolean, so we can trim that out as well.
+		xSpeedMax = 800, 
+		ySpeedMax = 800,
 	    state = "", -- "moveRight", "moveLeft", "jump", "fall", "stand"
 	    jumpSpeed = -800,
 	    runSpeed = 500,
-	    canJump = false, -- true: player is at a resting state where they aren't falling
+	    onFloor = false, -- true: player is at a resting state where they aren't falling
 		gravity = 1800,
 		hasJumped = false,
 		delay = 120,
 		bullets = { },
-		heat = 0, -- how much time should pass before player can shoot again
-		heatp = 0.1, -- length of such intervals in general (before player can shoot again) (heatPlus)
-		yFloor = yFloor,
+		bullets = Bullets:new(),
 		-- Load player animation
 		animation = SpriteAnimation:new("player/robosprites.png", 32, 32, 4, 4)
     }
@@ -34,9 +36,9 @@ function Player:new(yFloor)
 end
 
 function Player:jump()
-    if self.canJump then
+    if self.onFloor then
         self.ySpeed = self.jumpSpeed
-        self.canJump = false
+        self.onFloor = false
     end
 end
  
@@ -56,14 +58,23 @@ function Player:stop()
     self.xSpeed = 0
 end
  
-function Player:hitFloor(maxY)
-    self.y = maxY - self.height
-    self.ySpeed = 0
-    self.canJump = true
+-- Do various things when the player hits a tile
+function Player:collide(event)
+    if event == "floor" then
+        self.ySpeed = 0
+        self.onFloor = true
+    end
+    if event == "ceiling" then
+        self.ySpeed = 0
+    end
 end
 
-function Player:update(dt)
-	self.heat = math.max(0, self.heat - dt)
+function Player:fire()
+	local targetX, targetY = love.mouse.getPosition()
+	self.bullets:fire(self.x, self.y, targetX, targetY)
+end
+
+function Player:update(dt, gravity, map)
 	
 	--
     -- check controls
@@ -83,49 +94,83 @@ function Player:update(dt)
         self:jump()
     end
 	-- fire
-	if love.keyboard.isDown(" ") and self.heat <= 0 then
-		local direction = math.atan2(love.mouse.getY() - self.y, love.mouse.getX() - self.x)
-		table.insert(self.bullets, {
-			x = self.x,
-			y = self.y,
-			dir = direction,
-			speed = 400
-		})
-		self.heat = self.heatp
+	if love.keyboard.isDown(" ") then
+		self.bullets:fire(self.x, self.y, self.direction)
 	end
 	
-    -- update the player's position
-    self.x = self.x + (self.xSpeed * dt)
-    self.y = self.y + (self.ySpeed * dt)
- 
+	--
+    -- update the player's speed and position
+	--
+	
     -- apply gravity
     self.ySpeed = self.ySpeed + (self.gravity * dt)
  
-    -- update the player's state
-    if self.canJump then
-        if self.xSpeed > 0 then
-            self.state = "moveRight"
-        elseif self.xSpeed < 0 then
-            self.state = "moveLeft"
+	-- limit the player's speed
+	self.xSpeed = math.clamp(self.xSpeed, -self.xSpeedMax, self.xSpeedMax)
+	self.ySpeed = math.clamp(self.ySpeed, -self.ySpeedMax, self.ySpeedMax)
+	
+	-- calculate vertical position and adjust if needed
+	local nextY = math.floor(self.y + (self.ySpeed * dt))
+	
+	local halfX = self.width / 2
+	local halfY = self.height / 2
+	
+	if self.ySpeed < 0 then -- check upward
+        if not(self:isColliding(map, self.x - halfX, nextY - halfY))
+            and not(self:isColliding(map, self.x + halfX - 1, nextY - halfY)) then
+            -- no collision, move normally
+            self.y = nextY
+            self.onFloor = false
         else
-            self.state = "stand"
+            -- collision, move to nearest tile border
+            self.y = nextY + map.tileHeight - ((nextY - halfY) % map.tileHeight)
+            self:collide("ceiling")
+        end			
+    elseif self.ySpeed > 0 then -- check downward
+        if not(self:isColliding(map, self.x - halfX, nextY + halfY))
+            and not(self:isColliding(map, self.x + halfX - 1, nextY + halfY)) then
+            -- no collision, move normally
+            self.y = nextY
+            self.onFloor = false
+        else
+            -- collision, move to nearest tile border
+            self.y = nextY - ((nextY + halfY) % map.tileHeight)
+            self:collide("floor")
         end
-	else
-        if self.ySpeed < 0 then
-            self.state = "jump"
-        elseif self.ySpeed > 0 then
-            self.state = "fall"
+    end
+			
+    -- calculate horizontal position and adjust if needed
+    local nextX = math.floor(self.x + (self.xSpeed * dt))
+    if self.xSpeed > 0 then -- check right
+        if not(self:isColliding(map, nextX + halfX, self.y - halfY))
+            and not(self:isColliding(map, nextX + halfX, self.y + halfY - 1)) then
+            -- no collision
+            self.x = nextX
+        else
+            -- collision, move to nearest tile
+            self.x = nextX - ((nextX + halfX) % map.tileWidth)
+        end
+    elseif self.xSpeed < 0 then -- check left
+        if not(self:isColliding(map, nextX - halfX, self.y - halfY))
+            and not(self:isColliding(map, nextX - halfX, self.y + halfY - 1)) then
+            -- no collision
+            self.x = nextX
+        else
+            -- collision, move to nearest tile
+            self.x = nextX + map.tileWidth - ((nextX - halfX) % map.tileWidth)
         end
     end
 	
-    -- stop the player when they hit the borders
-    self.x = math.clamp(self.x, 0, width - self.width)
-    if self.y < 0 then self.y = 0 end
-    if self.y > self.yFloor - self.height then
-        self:hitFloor(self.yFloor)
-    end
+	--
+    -- update the player's state
+	--
 	
+	self.state = self:getState()
+	
+	--
     -- update the sprite animation
+	--
+	
     if (self.state == "stand") then
         self.animation:switch(1, 4, 200)
     end
@@ -138,16 +183,10 @@ function Player:update(dt)
     end
     self.animation:update(dt)
 	
+	--
 	-- update the bullets
-	local i, o
-	for i, o in ipairs(self.bullets) do
-		o.x = o.x + math.cos(o.dir) * o.speed * dt
-		o.y = o.y + math.sin(o.dir) * o.speed * dt
-		if (o.x < -10) or (o.x > love.graphics.getWidth() + 10)
-		or (o.y < -10) or (o.y > love.graphics.getHeight() + 10) then
-			table.remove(self.bullets, i)
-		end
-	end
+	--
+	self.bullets:update(dt)
 end
 
 function Player:draw()
@@ -160,11 +199,7 @@ function Player:draw()
     self.animation:draw(x, y)
 	
 	-- draw the bullets
-	love.graphics.setColor(255, 255, 255, 224)
-	local i, o
-	for i, o in ipairs(self.bullets) do
-		love.graphics.circle('fill', o.x, o.y, 10, 8)
-	end
+	self.bullets:draw();
  
     -- debug information
     g.setColor(255, 255, 255)
@@ -179,4 +214,38 @@ function Player:keyreleased(key)
 	if (key == "x") then
         self.hasJumped = false
     end	
+end
+
+-- returns player's state as a string
+function Player:getState()
+    local myState = ""
+    if self.onFloor then
+        if self.xSpeed > 0 then
+            myState = "moveRight"
+        elseif self.xSpeed < 0 then
+            myState = "moveLeft"
+        else
+            myState = "stand"
+        end
+    end
+    if self.ySpeed < 0 then
+        myState = "jump"
+    elseif self.ySpeed > 0 then
+        myState = "fall"
+    end
+    return myState
+end
+
+--
+-- returns true if the given coordinates given intersect a tile on the given map
+--
+function Player:isColliding(map, x, y)
+	-- Convert the game world x and y (measured in pixels), to the map's x and y (measured in tiles) by dividing the x and y by the map's tile sizes and then round off the decimals. 
+	local tileX, tileY = math.floor(x / map.tileWidth), math.floor(y / map.tileHeight)
+   
+	-- Grab the tile at given point.  If there's no tile at those coordinates, this will return nil.
+	local tile = map("Walls")(tileX, tileY)
+
+	-- Return true if the point overlaps a solid tile.
+	return not(tile == nil)
 end
