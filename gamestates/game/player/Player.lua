@@ -1,5 +1,5 @@
-require "player/SpriteAnimation"
-require "bullets/Bullets"
+require "gamestates.game.player.SpriteAnimation"
+require "gamestates.game.bullets.Bullets"
 
 Player = {}
  
@@ -26,7 +26,7 @@ function Player:new()
 		bullets = { },
 		bullets = Bullets:new(),
 		-- Load player animation
-		animation = SpriteAnimation:new("player/robosprites.png", 32, 32, 4, 4)
+		animation = SpriteAnimation:new("gamestates/game/player/robosprites.png", 32, 32, 4, 4)
     }
     setmetatable(object, { __index = Player })
 	

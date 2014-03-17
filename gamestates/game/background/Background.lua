@@ -9,7 +9,7 @@ Background = {}
 function Background:new()
     -- define our parameters here
     local object = {
-		bgSky = g.newImage("background/sky.jpg")
+		bgSky = g.newImage("gamestates/game/background/sky.jpg")
     }
     setmetatable(object, { __index = Background })
     return object

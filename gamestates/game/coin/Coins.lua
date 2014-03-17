@@ -2,7 +2,7 @@
 -- all the coins on the map
 --
 
-require "coin/Coin"
+require "gamestates.game.coin.Coin"
 
 Coins = {}
  
@@ -18,7 +18,7 @@ function Coins:new(map, player, spriteAnimationDelay, numCoins)
     setmetatable(object, { __index = Coins } )
 	
     -- create coin animation
-   object.coinSprites = SpriteAnimation:new("coin/coin.png", 32, 32, 20, 1)
+   object.coinSprites = SpriteAnimation:new("gamestates/game/coin/coin.png", 32, 32, 20, 1)
    object.coinSprites:load(spriteAnimationDelay)
    
 	-- place randomly generated coins around the map
