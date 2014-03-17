@@ -49,7 +49,8 @@ function love.draw()
 	camera:unset()
 	
 	-- draw the score
-	local font = g.newFont(18) 
+	g.setColor(255, 255, 255)
+	local font = g.newFont("fonts/orangejuice20.ttf", 24) 
 	g.setFont(font)	
 	love.graphics.print("Score: "..coins:getScore(), 700, 5)
 	
