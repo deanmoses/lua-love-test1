@@ -200,11 +200,6 @@ function Player:draw()
 	
 	-- draw the bullets
 	self.bullets:draw();
- 
-    -- debug information
-    g.setColor(255, 255, 255)
-    g.print("Player coordinates: ("..x..","..y..")", 5, 5)
-    g.print("Current state: "..self.state, 5, 20)
 end
 
 function Player:keyreleased(key)

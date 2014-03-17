@@ -49,12 +49,19 @@ function love.draw()
 	camera:unset()
 	
 	-- draw the score
+	local font = g.newFont(18) 
+	g.setFont(font)	
 	love.graphics.print("Score: "..coins:getScore(), 700, 5)
-		
+	
 	-- debugging
+	local font = g.newFont(12) 
+	g.setFont(font)	
+	g.setColor(255, 255, 255)
     local tileX = math.floor(player.x / map.tileWidth)
     local tileY = math.floor(player.y / map.tileHeight)
-	love.graphics.print("Current tile: ("..tileX..", "..tileY..")", 5, 35)
+    g.print("Player coordinates: ("..player.x..","..player.y..")", 5, 5)
+    g.print("Player state: "..player.state, 5, 20)
+	g.print("Player tile: ("..tileX..", "..tileY..")", 5, 35)
 end
  
 function love.keyreleased(key)
