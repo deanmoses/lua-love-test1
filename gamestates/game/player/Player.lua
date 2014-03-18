@@ -1,4 +1,4 @@
-require "gamestates.game.player.SpriteAnimation"
+require "lib.spriteanimation.SpriteAnimation"
 require "gamestates.game.bullets.Bullets"
 
 Player = {}

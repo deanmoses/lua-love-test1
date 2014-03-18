@@ -1,7 +1,7 @@
 --
 -- The main game
 --
-require "libs.camera"
+require "lib.camera.camera"
 require "gamestates.game.background.Background"
 require "gamestates.game.player.Player"
 require "gamestates.game.coin.Coins"
@@ -10,7 +10,7 @@ Game = {}
 
 function Game:enter()
 	-- load the map
-    local loader = require("libs.AdvTiledLoader.Loader")
+    local loader = require("lib.AdvTiledLoader.Loader")
     loader.path = "maps/"
     map = loader.load("map01.tmx")
     map:setDrawRange(0, 0, map.width * map.tileWidth, map.height * map.tileHeight)

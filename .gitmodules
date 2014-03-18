@@ -1,0 +1,12 @@
+[submodule "lib/Hump"]
+	path = lib/Hump
+	url = https://github.com/vrld/hump.git
+[submodule "lib/AdvTiledLoader"]
+	path = lib/AdvTiledLoader
+	url = https://github.com/Kadoba/Advanced-Tiled-Loader.git
+[submodule "lib/tween"]
+	path = lib/tween
+	url = https://github.com/kikito/tween.lua.git
+[submodule "lib/inspect"]
+	path = lib/inspect
+	url = https://github.com/kikito/inspect.lua.git

@@ -1,5 +1,5 @@
-tween = require 'libs.tween.tween'
-Gamestate = require "libs.hump.gamestate"
+tween = require 'lib.tween.tween'
+Gamestate = require "lib.Hump.gamestate"
 require "gamestates.game.Game"
 require "gamestates.menu.Menu"
 
@@ -23,7 +23,7 @@ function love.keyreleased(key)
 end
 
 function p(o)
-	inspect = require("libs.inspect")
+	local inspect = require("lib.inspect.inspect")
 	print(inspect(o))	
 end
 
