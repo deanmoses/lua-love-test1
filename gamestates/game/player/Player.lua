@@ -83,8 +83,8 @@ function Player:update(dt, gravity, map)
 	if (self:x() ~= nextX or self:y() ~= nextY) then
 		-- print("x: "..self:x()..", nextX: "..nextX.." y: "..self:y()..", nextY: "..nextY)
 		
-		if (self:y() ~= nextY) then
-			-- if y has changed, turn onFloor to false
+		if (self:y() < nextY) then
+			-- if I'm moving downwards, turn onFloor to false
 			-- onFloor will be turned back to true if there is a collision when moving down
 			--self.onFloor = false
 		end
