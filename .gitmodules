@@ -10,3 +10,6 @@
 [submodule "lib/inspect"]
 	path = lib/inspect
 	url = https://github.com/kikito/inspect.lua.git
+[submodule "lib/hardoncollider"]
+	path = lib/hardoncollider
+	url = https://github.com/vrld/HardonCollider.git

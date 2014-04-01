@@ -1,3 +1,19 @@
+--
+--  This is the camera library from BlackBulletIV's camera tutorials,
+--
+--  The camera controls which portion of the game world is rendered to screen
+--
+-- Add the following to love.load(), after the animations are loaded:
+--
+--    camera:setBounds(0, 0, width, math.floor(height / 8))
+--
+-- To figure out the bounds for our camera (or anything, for that matter), we look at the maximum possible values for it. 
+-- When the camera is resting in the corner, as shown, the value of the camera's x-coordinate will be the map width minus the display width. Since our world is twice as long as the screen width, our camera should stop when it hits (width * 2) - width, or just width for short.
+-- The height bounds are set to be one eighth of the display height: our world is only going to be one screen high anyway, so this will give the camera just enough "wiggle" that we feel like we're jumping. See? Not too intimidating after all.
+-- 
+-- more info:
+-- http://www.explodingrabbit.com/forum/entries/l%C3%B6ve-platform-game-programming-tutorial-03-5.718/
+
 camera = {}
 camera._x = 0
 camera._y = 0

@@ -4,11 +4,9 @@ require "gamestates.game.bullets.Bullets"
 Player = {}
  
 -- Constructor
-function Player:new()
+function Player:new(intitialX, initialY)
     -- define our parameters here
     local object = {
-	    x = 300,
-	    y = 300,
 	    width = 32,
 	    height = 32,
 	    xSpeed = 0,
@@ -20,8 +18,8 @@ function Player:new()
 	    jumpSpeed = -800,
 	    runSpeed = 500,
 	    onFloor = false, -- true: player is at a resting state where they aren't falling
-		gravity = 1800,
-		hasJumped = false,
+		gravity = 1800,--1800,
+		hasJumped = true,
 		delay = 120,
 		bullets = { },
 		bullets = Bullets:new(),
@@ -32,46 +30,10 @@ function Player:new()
 	
 	object.animation:load(object.delay)
 	
+	-- add the player to the collider
+	object.playerShape = collider:addRectangle(intitialX + (object.width/2), initialY + (object.height/2), object.width, object.height)
+		
     return object
-end
-
-function Player:jump()
-    if self.onFloor then
-        self.ySpeed = self.jumpSpeed
-        self.onFloor = false
-    end
-end
- 
-function Player:moveRight()
-    self.xSpeed = self.runSpeed
-    self.state = "moveRight"
-	self.animation:flip(false, false)
-end
- 
-function Player:moveLeft()
-    self.xSpeed = -1 * (self.runSpeed)
-    self.state = "moveLeft"
-	self.animation:flip(true, false)
-end
- 
-function Player:stop()
-    self.xSpeed = 0
-end
- 
--- Do various things when the player hits a tile
-function Player:collide(event)
-    if event == "floor" then
-        self.ySpeed = 0
-        self.onFloor = true
-    end
-    if event == "ceiling" then
-        self.ySpeed = 0
-    end
-end
-
-function Player:fire()
-	local targetX, targetY = love.mouse.getPosition()
-	self.bullets:fire(self.x, self.y, targetX, targetY)
 end
 
 function Player:update(dt, gravity, map)
@@ -95,7 +57,7 @@ function Player:update(dt, gravity, map)
     end
 	-- fire
 	if love.keyboard.isDown(" ") then
-		self.bullets:fire(self.x, self.y, self.direction)
+		self:fire()
 	end
 	
 	--
@@ -104,11 +66,20 @@ function Player:update(dt, gravity, map)
 	
     -- apply gravity
     self.ySpeed = self.ySpeed + (self.gravity * dt)
- 
+ 	
 	-- limit the player's speed
 	self.xSpeed = math.clamp(self.xSpeed, -self.xSpeedMax, self.xSpeedMax)
 	self.ySpeed = math.clamp(self.ySpeed, -self.ySpeedMax, self.ySpeedMax)
 	
+	-- set player's position
+	local nextY = math.floor(self:y() + (self.ySpeed * dt))
+	local nextX = math.floor(self:x() + (self.xSpeed * dt))
+	
+	--print("x: "..self:x().." y: "..self:y().." xAccel: "..(self.xSpeed * dt).." nextX: "..nextX)
+	
+	self:moveTo(nextX, nextY)
+	
+	--[[
 	-- calculate vertical position and adjust if needed
 	local nextY = math.floor(self.y + (self.ySpeed * dt))
 	
@@ -160,7 +131,108 @@ function Player:update(dt, gravity, map)
             self.x = nextX + map.tileWidth - ((nextX - halfX) % map.tileWidth)
         end
     end
+	--]]
+		
+	self:updateAnimation(dt)
 	
+	--
+	-- update the bullets
+	--
+	self.bullets:update(dt)
+end
+
+-- Do various things when the player hits a tile
+function Player:collide(mtv_x, mtv_y)
+	-- collided with floor
+    if mtv_y < 0 then
+        self.ySpeed = 0
+        self.onFloor = true
+    end
+	
+	-- collided with ceiling
+    if mtv_y > 0 then
+        self.ySpeed = 0
+		-- move player to tile below
+		--self.y = nextY + map.tileHeight - ((nextY - halfY) % map.tileHeight)
+    end
+	
+	-- collided right into wall
+    if mtv_x < 0 then
+		--print("stopped against right wall")
+        self.xSpeed = 0
+    end
+	
+	-- collided left into wall
+    if mtv_x > 0 then
+		--print("stopped against left wall")
+        self.xSpeed = 0
+    end
+
+	-- move player out of tile
+	--player.x = player.x - mtv_x
+	--player.y = player.y - mtv_y
+	
+	if (mtv_x > 0 or mtv_x < 0 or mtv_y > 0 or mtv_y < 0) then
+		--print("collided.  moving: "..mtv_x..","..mtv_y)
+		self:move(mtv_x, mtv_y)
+	end
+end
+
+--[[
+-- calculate vertical position and adjust if needed
+local nextY = math.floor(self.y + (self.ySpeed * dt))
+
+local halfX = self.width / 2
+local halfY = self.height / 2
+
+if self.ySpeed < 0 then -- check upward
+    if not(self:isColliding(map, self.x - halfX, nextY - halfY))
+        and not(self:isColliding(map, self.x + halfX - 1, nextY - halfY)) then
+        -- no collision, move normally
+        self.y = nextY
+        self.onFloor = false
+    else
+        -- collision, move to nearest tile border
+        self.y = nextY + map.tileHeight - ((nextY - halfY) % map.tileHeight)
+        self:collide("ceiling")
+    end			
+elseif self.ySpeed > 0 then -- check downward
+    if not(self:isColliding(map, self.x - halfX, nextY + halfY))
+        and not(self:isColliding(map, self.x + halfX - 1, nextY + halfY)) then
+        -- no collision, move normally
+        self.y = nextY
+        self.onFloor = false
+    else
+        -- collision, move to nearest tile border
+        self.y = nextY - ((nextY + halfY) % map.tileHeight)
+        self:collide("floor")
+    end
+end
+		
+-- calculate horizontal position and adjust if needed
+local nextX = math.floor(self.x + (self.xSpeed * dt))
+if self.xSpeed > 0 then -- check right
+    if not(self:isColliding(map, nextX + halfX, self.y - halfY))
+        and not(self:isColliding(map, nextX + halfX, self.y + halfY - 1)) then
+        -- no collision
+        self.x = nextX
+    else
+        -- collision, move to nearest tile
+        self.x = nextX - ((nextX + halfX) % map.tileWidth)
+    end
+elseif self.xSpeed < 0 then -- check left
+    if not(self:isColliding(map, nextX - halfX, self.y - halfY))
+        and not(self:isColliding(map, nextX - halfX, self.y + halfY - 1)) then
+        -- no collision
+        self.x = nextX
+    else
+        -- collision, move to nearest tile
+        self.x = nextX + map.tileWidth - ((nextX - halfX) % map.tileWidth)
+    end
+end
+--]]
+
+function Player:updateAnimation(dt)
 	--
     -- update the player's state
 	--
@@ -181,30 +253,84 @@ function Player:update(dt, gravity, map)
         self.animation:reset()
         self.animation:switch(3, 1, 300)
     end
-    self.animation:update(dt)
+    self.animation:update(dt)	
 	
-	--
-	-- update the bullets
-	--
-	self.bullets:update(dt)
 end
 
 function Player:draw()
     -- round down our x, y values
-    local x = math.floor(self.x)
-    local y = math.floor(self.y)
+    local x = math.floor(self:x())
+    local y = math.floor(self:y())
+	
+	-- draw the player's shape in the collider, for debugging
+	--self.playerShape:draw("fill")
 	
 	-- draw the player
     g.setColor(255, 255, 255)
-    self.animation:draw(x, y)
+	local x1,y1, x2,y2 = self.playerShape:bbox()
+    self.animation:draw(x1, y1)
 	
 	-- draw the bullets
 	self.bullets:draw();
 end
 
+function Player:jump()
+    if self.onFloor then
+		--print("jump!")
+        self.ySpeed = self.jumpSpeed
+        self.onFloor = false
+	else
+		--print("not on floor, can't jump")
+    end
+end
+ 
+function Player:moveRight()
+    self.xSpeed = self.runSpeed
+    self.state = "moveRight"
+	self.animation:flip(false, false)
+end
+ 
+function Player:moveLeft()
+    self.xSpeed = -1 * (self.runSpeed)
+    self.state = "moveLeft"
+	self.animation:flip(true, false)
+end
+ 
+function Player:stopX()
+    self.xSpeed = 0
+end
+
+function Player:fire()
+	local targetX, targetY = love.mouse.getPosition()
+	self.bullets:fire(self:x(), self:y(), targetX, targetY)
+end
+
+function Player:center()
+	return self.playerShape:center()	
+end
+
+function Player:x()
+	local x,y = self.playerShape:center()
+	return x
+end
+
+function Player:y()
+	local x,y = self.playerShape:center()
+	return y
+end
+
+function Player:move(x, y)
+	self.playerShape:move(x,y)
+end
+
+function Player:moveTo(x, y)
+	self.playerShape:moveTo(x,y)
+end
+
+
 function Player:keyreleased(key)
     if (key == "right") or (key == "left") then
-        self:stop()
+        self:stopX()
     end
 	if (key == "x") then
         self.hasJumped = false
@@ -231,7 +357,7 @@ function Player:getState()
     return myState
 end
 
---
+--[[
 -- returns true if the given coordinates given intersect a tile on the given map
 --
 function Player:isColliding(map, x, y)
@@ -244,3 +370,4 @@ function Player:isColliding(map, x, y)
 	-- Return true if the point overlaps a solid tile.
 	return not(tile == nil)
 end
+--]]

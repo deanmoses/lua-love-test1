@@ -27,16 +27,49 @@ function Coins:new(map, player, spriteAnimationDelay, numCoins)
     return object
 end
 
+function Coins:addCoinsToCollider()
+    for i in ipairs(self.coins) do
+		local coin = self.coins[i]
+		--print("--- coin ----")
+		--print("---- COIN X: "..self.coins[i].x .. " COIN Y: " .. self.coins[i].y)
+		--print("---- COIN X:  "..self.coins[i].x.." COIN y "..self.coins[i]:y)
+		local shape = collider:addCircle(coin.x, coin.y, coin.width)
+		shape.type = "coin"
+		shape.coin = coin
+		collider:addToGroup("coins", shape)
+		collider:setPassive(ctile)
+    end
+end
+
+-- Player has collided with coin. 
+-- Remove coin, increment score
+function Coins:collect(coinShape)
+	print("hit!")
+    for i in ipairs(self.coins) do
+        if coinShape.coin == self.coins[i] then
+			-- increment score
+			self.score = self.score + 1
+			
+			-- remove from list of coins
+			table.remove(self.coins, i)
+			
+			-- remove from collider
+			collider:remove(coinShape)
+			return
+		end
+    end
+end
+
 function Coins:update(dt)
     -- update coin animations and check for player collisions
     for i in ipairs(self.coins) do
         self.coins[i]:update(dt)
        
         -- if player collides, add to score and remove coin
-        if self.coins[i]:touchesObject(self.player) then
-            self.score = self.score + 1
-            table.remove(self.coins, i)
-        end
+        --if self.coins[i]:touchesObject(self.player) then
+        --    self.score = self.score + 1
+        --    table.remove(self.coins, i)
+        --end
     end
 end
 
