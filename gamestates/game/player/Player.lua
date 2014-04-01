@@ -79,70 +79,25 @@ function Player:update(dt, gravity, map)
 	
 	self:moveTo(nextX, nextY)
 	
-	--[[
-	-- calculate vertical position and adjust if needed
-	local nextY = math.floor(self.y + (self.ySpeed * dt))
+	--
+	-- update dependent objects
+	--
 	
-	local halfX = self.width / 2
-	local halfY = self.height / 2
-	
-	if self.ySpeed < 0 then -- check upward
-        if not(self:isColliding(map, self.x - halfX, nextY - halfY))
-            and not(self:isColliding(map, self.x + halfX - 1, nextY - halfY)) then
-            -- no collision, move normally
-            self.y = nextY
-            self.onFloor = false
-        else
-            -- collision, move to nearest tile border
-            self.y = nextY + map.tileHeight - ((nextY - halfY) % map.tileHeight)
-            self:collide("ceiling")
-        end			
-    elseif self.ySpeed > 0 then -- check downward
-        if not(self:isColliding(map, self.x - halfX, nextY + halfY))
-            and not(self:isColliding(map, self.x + halfX - 1, nextY + halfY)) then
-            -- no collision, move normally
-            self.y = nextY
-            self.onFloor = false
-        else
-            -- collision, move to nearest tile border
-            self.y = nextY - ((nextY + halfY) % map.tileHeight)
-            self:collide("floor")
-        end
-    end
-			
-    -- calculate horizontal position and adjust if needed
-    local nextX = math.floor(self.x + (self.xSpeed * dt))
-    if self.xSpeed > 0 then -- check right
-        if not(self:isColliding(map, nextX + halfX, self.y - halfY))
-            and not(self:isColliding(map, nextX + halfX, self.y + halfY - 1)) then
-            -- no collision
-            self.x = nextX
-        else
-            -- collision, move to nearest tile
-            self.x = nextX - ((nextX + halfX) % map.tileWidth)
-        end
-    elseif self.xSpeed < 0 then -- check left
-        if not(self:isColliding(map, nextX - halfX, self.y - halfY))
-            and not(self:isColliding(map, nextX - halfX, self.y + halfY - 1)) then
-            -- no collision
-            self.x = nextX
-        else
-            -- collision, move to nearest tile
-            self.x = nextX + map.tileWidth - ((nextX - halfX) % map.tileWidth)
-        end
-    end
-	--]]
-		
+	-- update the player's animation
 	self:updateAnimation(dt)
 	
-	--
-	-- update the bullets
-	--
+	-- update the player's bullets
 	self.bullets:update(dt)
 end
 
 -- Do various things when the player hits a tile
 function Player:collide(mtv_x, mtv_y)
+	-- i'm getting a lot of zero x,y in collide(), ignore those
+	if (not(mtv_x > 0 or mtv_x < 0 or mtv_y > 0 or mtv_y < 0)) then
+		--print("zero x,y.  not moving: "..mtv_x..","..mtv_y)
+		return
+	end
+	
 	-- collided with floor
     if mtv_y < 0 then
         self.ySpeed = 0
@@ -152,8 +107,6 @@ function Player:collide(mtv_x, mtv_y)
 	-- collided with ceiling
     if mtv_y > 0 then
         self.ySpeed = 0
-		-- move player to tile below
-		--self.y = nextY + map.tileHeight - ((nextY - halfY) % map.tileHeight)
     end
 	
 	-- collided right into wall
@@ -169,68 +122,11 @@ function Player:collide(mtv_x, mtv_y)
     end
 
 	-- move player out of tile
-	--player.x = player.x - mtv_x
-	--player.y = player.y - mtv_y
-	
 	if (mtv_x > 0 or mtv_x < 0 or mtv_y > 0 or mtv_y < 0) then
 		--print("collided.  moving: "..mtv_x..","..mtv_y)
 		self:move(mtv_x, mtv_y)
 	end
 end
-
---[[
--- calculate vertical position and adjust if needed
-local nextY = math.floor(self.y + (self.ySpeed * dt))
-
-local halfX = self.width / 2
-local halfY = self.height / 2
-
-if self.ySpeed < 0 then -- check upward
-    if not(self:isColliding(map, self.x - halfX, nextY - halfY))
-        and not(self:isColliding(map, self.x + halfX - 1, nextY - halfY)) then
-        -- no collision, move normally
-        self.y = nextY
-        self.onFloor = false
-    else
-        -- collision, move to nearest tile border
-        self.y = nextY + map.tileHeight - ((nextY - halfY) % map.tileHeight)
-        self:collide("ceiling")
-    end			
-elseif self.ySpeed > 0 then -- check downward
-    if not(self:isColliding(map, self.x - halfX, nextY + halfY))
-        and not(self:isColliding(map, self.x + halfX - 1, nextY + halfY)) then
-        -- no collision, move normally
-        self.y = nextY
-        self.onFloor = false
-    else
-        -- collision, move to nearest tile border
-        self.y = nextY - ((nextY + halfY) % map.tileHeight)
-        self:collide("floor")
-    end
-end
-		
--- calculate horizontal position and adjust if needed
-local nextX = math.floor(self.x + (self.xSpeed * dt))
-if self.xSpeed > 0 then -- check right
-    if not(self:isColliding(map, nextX + halfX, self.y - halfY))
-        and not(self:isColliding(map, nextX + halfX, self.y + halfY - 1)) then
-        -- no collision
-        self.x = nextX
-    else
-        -- collision, move to nearest tile
-        self.x = nextX - ((nextX + halfX) % map.tileWidth)
-    end
-elseif self.xSpeed < 0 then -- check left
-    if not(self:isColliding(map, nextX - halfX, self.y - halfY))
-        and not(self:isColliding(map, nextX - halfX, self.y + halfY - 1)) then
-        -- no collision
-        self.x = nextX
-    else
-        -- collision, move to nearest tile
-        self.x = nextX + map.tileWidth - ((nextX - halfX) % map.tileWidth)
-    end
-end
---]]
 
 function Player:updateAnimation(dt)
 	--
