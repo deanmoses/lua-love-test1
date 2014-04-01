@@ -79,7 +79,7 @@ function Game:draw()
     g.print("Player coordinates: ("..player:x()..","..player:y()..")", 5, 5)
     g.print("Player state: "..player.state, 5, 20)
 	g.print("Player tile: ("..tileX..", "..tileY..")", 5, 35)
-	g.print("Player speed: ("..player.xSpeed..","..player.ySpeed..")", 5, 50)
+	-- g.print("Player speed: ("..player.xSpeed..","..player.ySpeed..")", 5, 50)
 end
  
 function Game:keyreleased(key)

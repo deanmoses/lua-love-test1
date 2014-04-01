@@ -27,12 +27,10 @@ function Coins:new(map, player, spriteAnimationDelay, numCoins)
     return object
 end
 
+-- Add coins to the collision detection system
 function Coins:addCoinsToCollider()
     for i in ipairs(self.coins) do
 		local coin = self.coins[i]
-		--print("--- coin ----")
-		--print("---- COIN X: "..self.coins[i].x .. " COIN Y: " .. self.coins[i].y)
-		--print("---- COIN X:  "..self.coins[i].x.." COIN y "..self.coins[i]:y)
 		local shape = collider:addCircle(coin.x, coin.y, coin.width)
 		shape.type = "coin"
 		shape.coin = coin
@@ -44,7 +42,6 @@ end
 -- Player has collided with coin. 
 -- Remove coin, increment score
 function Coins:collect(coinShape)
-	print("hit!")
     for i in ipairs(self.coins) do
         if coinShape.coin == self.coins[i] then
 			-- increment score
@@ -60,21 +57,15 @@ function Coins:collect(coinShape)
     end
 end
 
+-- Update all coin animations
 function Coins:update(dt)
-    -- update coin animations and check for player collisions
     for i in ipairs(self.coins) do
         self.coins[i]:update(dt)
-       
-        -- if player collides, add to score and remove coin
-        --if self.coins[i]:touchesObject(self.player) then
-        --    self.score = self.score + 1
-        --    table.remove(self.coins, i)
-        --end
     end
 end
 
+-- Draw all coins
 function Coins:draw()
-	-- draw coins
     for i in ipairs(self.coins) do
         self.coinSprites:start(self.coins[i].frame)
         self.coinSprites:draw(self.coins[i].x - self.coins[i].width / 2, self.coins[i].y - self.coins[i].height / 2)
