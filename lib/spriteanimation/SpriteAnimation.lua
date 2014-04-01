@@ -59,9 +59,14 @@ function SpriteAnimation:update(dt)
             if (self.currentFrame == self.numFrames) and not(self.loop) then
                 self.currentFrame = self.numFrames - 1
             end
-           
+           	
+			--print("animation.update() numFrames: " .. self.numFrames .. " current frame: " .. self.currentFrame)
+		   
             -- advance one frame, then reset delta counter
             self.currentFrame = (self.currentFrame % self.numFrames) + 1
+			
+			--print("animation.update() current frame 2: " .. self.currentFrame)
+			
             self.delta = 0
         end
     end
@@ -89,6 +94,7 @@ end
 function SpriteAnimation:switch(newRow, newMax, newDelay)
     -- Optional: assign a new number of animation frames
     if newMax then
+		-- print("animation:switch() numFrames: " .. newMax)
         self.numFrames = newMax
     end
    

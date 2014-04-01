@@ -19,7 +19,7 @@ function Player:new(intitialX, initialY)
 	    runSpeed = 500,
 	    onFloor = false, -- true: player is at a resting state where they aren't falling
 		gravity = 1800,--1800,
-		hasJumped = true,
+		hasJumped = false,
 		delay = 120,
 		bullets = { },
 		bullets = Bullets:new(),
@@ -37,6 +37,7 @@ function Player:new(intitialX, initialY)
 end
 
 function Player:update(dt, gravity, map)
+	--print("Player:update onFloor: " .. tostring(self.onFloor))
 	
 	--
     -- check controls
@@ -77,7 +78,19 @@ function Player:update(dt, gravity, map)
 	
 	--print("x: "..self:x().." y: "..self:y().." xAccel: "..(self.xSpeed * dt).." nextX: "..nextX)
 	
-	self:moveTo(nextX, nextY)
+	
+	-- only do the move if the player's position has actually changed
+	if (self:x() ~= nextX or self:y() ~= nextY) then
+		-- print("x: "..self:x()..", nextX: "..nextX.." y: "..self:y()..", nextY: "..nextY)
+		
+		if (self:y() ~= nextY) then
+			-- if y has changed, turn onFloor to false
+			-- onFloor will be turned back to true if there is a collision when moving down
+			--self.onFloor = false
+		end
+		
+		self:moveTo(nextX, nextY)
+	end
 	
 	--
 	-- update dependent objects
@@ -91,8 +104,10 @@ function Player:update(dt, gravity, map)
 end
 
 -- Do various things when the player hits a tile
-function Player:collide(mtv_x, mtv_y)
-	-- i'm getting a lot of zero x,y in collide(), ignore those
+function Player:on_collide(mtv_x, mtv_y)
+	--print("Player:on_collide("..mtv_x..", "..mtv_y..")")
+	
+	-- i'm getting a lot of zero x,y in collide(). ignore them
 	if (not(mtv_x > 0 or mtv_x < 0 or mtv_y > 0 or mtv_y < 0)) then
 		--print("zero x,y.  not moving: "..mtv_x..","..mtv_y)
 		return
@@ -102,21 +117,17 @@ function Player:collide(mtv_x, mtv_y)
     if mtv_y < 0 then
         self.ySpeed = 0
         self.onFloor = true
-    end
-	
 	-- collided with ceiling
-    if mtv_y > 0 then
+    elseif mtv_y > 0 then
         self.ySpeed = 0
     end
 	
 	-- collided right into wall
     if mtv_x < 0 then
 		--print("stopped against right wall")
-        self.xSpeed = 0
-    end
-	
+        self.xSpeed = 0	
 	-- collided left into wall
-    if mtv_x > 0 then
+    elseif mtv_x > 0 then
 		--print("stopped against left wall")
         self.xSpeed = 0
     end
@@ -134,18 +145,22 @@ function Player:updateAnimation(dt)
 	--
 	
 	self.state = self:getState()
+	--print("Player:updateAnimation() state: " .. self.state)
 	
 	--
     -- update the sprite animation
 	--
 	
     if (self.state == "stand") then
+		--print("Player:updateAnimation(): stand")
         self.animation:switch(1, 4, 200)
     end
     if (self.state == "moveRight") or (self.state == "moveLeft") then
+		--print("Player:updateAnimation(): moveRight or Left")
         self.animation:switch(2, 4, 120)
     end
     if (self.state == "jump") or (self.state == "fall") then
+		--print("Player:updateAnimation(): jump or fall")
         self.animation:reset()
         self.animation:switch(3, 1, 300)
     end
@@ -168,6 +183,15 @@ function Player:draw()
 	
 	-- draw the bullets
 	self.bullets:draw();
+end
+
+function Player:keyreleased(key)
+    if (key == "right") or (key == "left") then
+        self:stopX()
+    end
+	if (key == "x") then
+        self.hasJumped = false
+    end	
 end
 
 function Player:jump()
@@ -223,16 +247,6 @@ function Player:moveTo(x, y)
 	self.playerShape:moveTo(x,y)
 end
 
-
-function Player:keyreleased(key)
-    if (key == "right") or (key == "left") then
-        self:stopX()
-    end
-	if (key == "x") then
-        self.hasJumped = false
-    end	
-end
-
 -- returns player's state as a string
 function Player:getState()
     local myState = ""
@@ -244,26 +258,10 @@ function Player:getState()
         else
             myState = "stand"
         end
-    end
-    if self.ySpeed < 0 then
+	elseif self.ySpeed < 0 then
         myState = "jump"
-    elseif self.ySpeed > 0 then
+    elseif self.ySpeed >= 0 then
         myState = "fall"
     end
     return myState
 end
-
---[[
--- returns true if the given coordinates given intersect a tile on the given map
---
-function Player:isColliding(map, x, y)
-	-- Convert the game world x and y (measured in pixels), to the map's x and y (measured in tiles) by dividing the x and y by the map's tile sizes and then round off the decimals. 
-	local tileX, tileY = math.floor(x / map.tileWidth), math.floor(y / map.tileHeight)
-   
-	-- Grab the tile at given point.  If there's no tile at those coordinates, this will return nil.
-	local tile = map("Walls")(tileX, tileY)
-
-	-- Return true if the point overlaps a solid tile.
-	return not(tile == nil)
-end
---]]

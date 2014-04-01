@@ -37,10 +37,10 @@ function Game:enter()
 end
 
 function Game:update(dt)
-	-- update the player's position and check for collisions with map
-	player:update(dt, gravity, map)
+	-- update the player
+	player:update(dt)
 	
-    -- update coin animations and check for collisions with player
+    -- update coins
 	coins:update(dt)
 	
 	-- update collision detection
@@ -76,10 +76,10 @@ function Game:draw()
 	g.setColor(255, 255, 255)
     local tileX = math.floor(player:x() / map.tileWidth)
     local tileY = math.floor(player:y() / map.tileHeight)
-    g.print("Player coordinates: ("..player:x()..","..player:y()..")", 5, 5)
-    g.print("Player state: "..player.state, 5, 20)
+    g.print("Player x,y: ("..player:x()..","..player:y()..")", 5, 5)
+    g.print("Player state: "..player.state..", on floor: " ..tostring(player.onFloor), 5, 20)
 	g.print("Player tile: ("..tileX..", "..tileY..")", 5, 35)
-	-- g.print("Player speed: ("..player.xSpeed..","..player.ySpeed..")", 5, 50)
+	--g.print("Player speed: ("..player.xSpeed..","..player.ySpeed..")", 5, 50)
 end
  
 function Game:keyreleased(key)
@@ -93,23 +93,23 @@ end
 -- callback for hardon collider, letting us know that
 -- two things have collided
 function on_collide(dt, shape_a, shape_b, mtv_x, mtv_y)
-    -- sort out which one is our player
+    -- figure out which shape is our player
 	local other_shape
 	if shape_a == player.playerShape then
 		other_shape = shape_b
 	elseif shape_b == player.playerShape then
 		other_shape = shape_a
 	else
-		--print("on_collide(): neither shape is player")
+		--print("Game.on_collide(): neither shape is player")
         return
     end
 	
 	if other_shape.type == "tile" then
-		player:collide(mtv_x, mtv_y)
+		player:on_collide(mtv_x, mtv_y)
 	elseif other_shape.type == "coin" then
 		coins:collect(other_shape)
 	else
-		--print("on_collide(): unknown type of other shape")
+		--print("Game.on_collide(): unknown type of other shape")
         return
 	end	
 end
