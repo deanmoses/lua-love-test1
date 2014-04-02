@@ -37,7 +37,7 @@ function Player:new(intitialX, initialY)
 end
 
 function Player:update(dt, gravity, map)
-	--print("Player:update onFloor: " .. tostring(self.onFloor))
+	--print("\nPlayer:update onFloor: " .. tostring(self.onFloor))
 	
 	--
     -- check controls
@@ -78,15 +78,14 @@ function Player:update(dt, gravity, map)
 	
 	--print("x: "..self:x().." y: "..self:y().." xAccel: "..(self.xSpeed * dt).." nextX: "..nextX)
 	
-	
 	-- only do the move if the player's position has actually changed
 	if (self:x() ~= nextX or self:y() ~= nextY) then
-		-- print("x: "..self:x()..", nextX: "..nextX.." y: "..self:y()..", nextY: "..nextY)
+		--print("x: "..self:x()..", nextX: "..nextX.." y: "..self:y()..", nextY: "..nextY)
 		
 		if (self:y() < nextY) then
 			-- if I'm moving downwards, turn onFloor to false
 			-- onFloor will be turned back to true if there is a collision when moving down
-			--self.onFloor = false
+			self.onFloor = false
 		end
 		
 		self:moveTo(nextX, nextY)
@@ -96,11 +95,14 @@ function Player:update(dt, gravity, map)
 	-- update dependent objects
 	--
 	
-	-- update the player's animation
-	self:updateAnimation(dt)
-	
 	-- update the player's bullets
 	self.bullets:update(dt)
+end
+
+-- update stuff after collision detection happens
+function Player:update_after_collision(dt)
+	-- update the player's animation
+	self:updateAnimation(dt)
 end
 
 -- Do various things when the player hits a tile
@@ -112,6 +114,8 @@ function Player:on_collide(mtv_x, mtv_y)
 		--print("zero x,y.  not moving: "..mtv_x..","..mtv_y)
 		return
 	end
+	
+	--print("Player:on_collide("..mtv_x..", "..mtv_y..")")
 	
 	-- collided with floor
     if mtv_y < 0 then
@@ -169,6 +173,8 @@ function Player:updateAnimation(dt)
 end
 
 function Player:draw()
+	--print("Player:draw()")
+	
     -- round down our x, y values
     local x = math.floor(self:x())
     local y = math.floor(self:y())

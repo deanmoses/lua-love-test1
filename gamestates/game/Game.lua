@@ -46,6 +46,9 @@ function Game:update(dt)
 	-- update collision detection
 	collider:update(dt)
 	
+	-- update the player stuff that needs to be updated after collision detection
+	player:update_after_collision(dt)
+	
     -- center the camera on the player
     camera:setPosition(math.floor(player:x() - width / 2), math.floor(player:y()- height / 2))
 end
