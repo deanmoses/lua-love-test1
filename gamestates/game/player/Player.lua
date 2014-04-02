@@ -84,7 +84,7 @@ function Player:update(dt, gravity, map)
 		
 		if (self:y() < nextY) then
 			-- if I'm moving downwards, turn onFloor to false
-			-- onFloor will be turned back to true if there is a collision when moving down
+			-- it will be turned back to true if there is a collision when moving down
 			self.onFloor = false
 		end
 		

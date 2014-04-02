@@ -31,7 +31,7 @@ end
 function Coins:addCoinsToCollider()
     for i in ipairs(self.coins) do
 		local coin = self.coins[i]
-		local shape = collider:addCircle(coin.x, coin.y, coin.width)
+		local shape = collider:addCircle(coin.x, coin.y, (coin.width - 4) / 2)
 		shape.type = "coin"
 		shape.coin = coin
 		collider:addToGroup("coins", shape)
@@ -70,6 +70,12 @@ function Coins:draw()
         self.coinSprites:start(self.coins[i].frame)
         self.coinSprites:draw(self.coins[i].x - self.coins[i].width / 2, self.coins[i].y - self.coins[i].height / 2)
     end
+	
+	--for shape in collider:activeShapes() do
+	--	if shape.type == "coin" then
+	--    	shape:draw()
+	--	end
+	--end
 end
 
 -- Get game score (# coins collected by player)
